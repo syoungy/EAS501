@@ -1,0 +1,11 @@
+---
+title: "Climate Analysis Report"
+format: html
+---
+
+## Introduction
+This report examines atmospheric CO2 concentrations.
+
+## Summary
+The CO2 trend is increasing.
+

@@ -1,0 +1,156 @@
+---
+title: "Climate analysis report"
+author: "So Young Yang"
+format:
+  html: default
+  pdf: default
+  docx: default
+params:
+  station: "Mauna Loa"
+  start_year: 1990
+editor: 
+  render-on-save: true
+execute:
+  warning: false
+  message: false
+bibliography: reference.bib
+---
+
+# Code chunks and inline code
+Code chunks allow us to embed executable code within Quarto documents. Begin a chunk with {r}, and end with triple backticks. Chunk headers accept options such as eval: false (skip execution), include: false (run but hide both code and output), and echo: false (run and show output but hide the code) to control what a chunk actually does and shows.
+
+Let’s load our climate data for the report.
+
+```{r}
+#install.packages("tidyverse")
+#install.packages("tidyverse", repos = "https://cloud.r-project.org")
+#pdf: default
+#docx: default
+```
+
+```{r}
+library(tidyverse)
+data_path <- "https://websites.umich.edu/~zhukai/env-data-sci/data"
+
+mauna_loa_co2 <- read.table(file.path(data_path, "climate", "mauna_loa_co2.txt"), skip = 42, header = FALSE, na.strings = c("-1", "-9.99", "-0.99"))
+colnames(mauna_loa_co2) <- c("year", "month", "decimal_date", "average", "interpolated", "n_day", "stdv_day", "uncertainty_month")
+```
+
+
+Other options target specific kinds of output rather than the whole chunk: message: false and warning: false suppress messages and warnings, results: hide and fig-show: hide hide printed output and plots, and error: true lets rendering continue past a failing chunk instead of stopping the whole document.
+
+```{r}
+mauna_loa_co2$decade <- floor(mauna_loa_co2$year / 10) * 10
+aggregate(interpolated ~ decade, data = mauna_loa_co2, FUN = mean, na.rm = TRUE)
+```
+
+Rather than repeating the same options on every chunk, we can set them once in the YAML header under execute to apply throughout the entire document.
+
+Inline code can be embedded directly within text using backticks of r. This is useful for displaying dynamic results within narrative text.
+
+As of "r latest_year, the most recent recorded atmospheric CO2 concentration was "r latest_co2" ppm.
+
+Inline code ensures that our text and results stay synchronized, particularly when the data changes or the document is updated — if next month’s data is appended to mauna_loa_co2.txt, re-rendering the report automatically updates both the number and the surrounding narrative.
+
+```{r}
+latest_co2 <- round(tail(mauna_loa_co2$interpolated, 1), 1)
+latest_year <- tail(mauna_loa_co2$year, 1)
+```
+
+
+# Figures, tables, and citations
+Figures generated in code chunks are automatically included in the output. Quarto supports both base R graphics and the ggplot2 package, allowing us to leverage the full range of R’s plotting capabilities to produce high-quality visualizations.
+
+We can control the size and appearance of these figures using options like fig-width, fig-height, fig-asp, out-width, and out-height. These options allow us to customize the dimensions and alignment of the plots in our document.
+
+```{r}
+mauna_loa_co2$Date <- as.Date(with(mauna_loa_co2, ISOdate(year, month, 1)))
+```
+
+By setting the fig-cap and fig-alt options, we can add captions and alt text to our figures, enhancing their descriptive clarity and accessibility. Captions help explain what the plot shows, which is crucial for effective communication. Giving a chunk a cross-reference label (a label option starting with fig-) additionally lets us refer to the figure elsewhere in the text by number, rather than writing “the figure above” — a reference that stays correct even if we later reorder sections.
+
+The complete source for the labeled figure is:
+
+```{r}
+#| label: fig-co2-trend
+#| fig-width: 6
+#| fig-height: 4
+#| fig-cap: "Monthly atmospheric CO2 concentration measured at Mauna Loa Observatory"
+#| fig-alt: "Line plot of CO2 concentration in parts per million against date, showing a steady long-term increase with a seasonal sawtooth pattern"
+#| out-width: "70%"
+
+ggplot(mauna_loa_co2, aes(x = Date, y = interpolated)) +
+  geom_line(color = "darkgreen") +
+  labs(x = "Date", y = "CO2 concentration (ppm)", title = "Atmospheric CO2 concentration") +
+  theme_minimal()
+```
+
+As shown in @fig-co2-trend, atmospheric CO2 has risen steadily since 1958.
+
+Tables work the same way: knitr::kable() renders a data frame as a formatted table, tbl-cap gives it a caption, and a label starting with tbl- makes it cross-referenceable, just like a figure.
+
+The complete source for the labeled table is:
+```{r}
+#| label: tbl-co2-decade
+#| tbl-cap: "Atmospheric CO2 concentration by decade"
+
+mauna_loa_co2$decade <- floor(mauna_loa_co2$year / 10) * 10
+co2_by_decade <- aggregate(interpolated ~ decade, data = mauna_loa_co2, FUN = mean, na.rm = TRUE)
+co2_by_decade$interpolated <- round(co2_by_decade$interpolated, 1)
+names(co2_by_decade) <- c("Decade", "Mean CO2 (ppm)")
+knitr::kable(co2_by_decade)
+```
+
+Cross-references are one more way Quarto keeps our narrative synchronized with our content: renumbering a figure or table never requires hand-editing the surrounding text that refers to it.
+
+Beyond figures and tables, Quarto also supports citations to external sources. A .bib file listed under bibliography in the YAML header lets us cite a source with @key syntax, and Quarto automatically generates an in-text citation and a formatted reference list at the end of the document — this entire course website, in fact, cites its textbooks this way (for example, Wickham et al. (2023)).
+
+[Bibliography] 
+Atmospheric CO2 has been measured continuously at Mauna Loa since 1958, extending an ice-core record that reaches back hundreds of thousands of years @barnola2003.
+As shown in @fig-co2-trend, ....
+As shown in @tbl-co2-decade, ...
+
+
+# Rendering to multiple formats
+The second principle of this module is separating content from presentation: the same Quarto document — the same code, results, and narrative — can be rendered into very different-looking outputs simply by changing the format in the YAML header. This is possible because Quarto separates what we say (the content) from how it looks (the presentation), the same way a webpage’s HTML content is separate from its CSS styling.
+
+We can render our climate report into multiple formats, such as HTML, PDF, or Word, by configuring the YAML header or using the quarto_render() function.
+
+(1) in html
+(2) docx
+(3) pdf
+
+# Parameterized reports
+Separating content from presentation extends beyond output format: Quarto also lets us separate content from input. A parameter, declared under params in the YAML header, is a variable whose value can be set at render time rather than hard-coded into the document — the same .qmd file can then produce a different report for each station, date range, or threshold, without duplicating any code or text.
+
+Inside the document, parameters are available as a list, params$station and params$start_year, and can be used anywhere a hard-coded value would otherwise appear — in a filter, a title, or an inline reference:
+
+```{r}
+report_station <- params$station
+report_start <- params$start_year
+
+subset(mauna_loa_co2, year >= report_start)
+```
+
+Rendering with a different parameter value produces a differently filtered (or titled) report from the exact same source file:
+
+This is the same underlying idea as rendering to multiple formats, applied instead to multiple inputs: one document, many reports, with no risk of the copies drifting out of sync since they all come from a single source of truth.
+
+# [Module 3] Version Control 
+# Getting started with Git and GitHub
+  ## Initializing a local repository
+  ```{r}
+  cd path/to/climate-report
+  git init
+  ```
+
+  ```{r}
+  git clone https://github.com/username/repo-name.git
+  ```
+
+  ## Tracking and committing changes
+# Collaborative workflows with GitHub
+  ## Synchronizing with push and pull 
+  ## Branching for feature development
+  ## Using pull requests for collaboration
+  ## Merging changes and resolving conflicts

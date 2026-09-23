@@ -7,5 +7,4 @@ format: html
 This report examines atmospheric CO2 concentrations.
 
 ## Summary
-The CO2 trend is increasing.
-
+Atmospheric CO2 concentrations have risen significantly.

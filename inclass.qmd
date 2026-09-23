@@ -151,9 +151,18 @@ This is the same underlying idea as rendering to multiple formats, applied inste
   ## Tracking and committing changes
 # Collaborative workflows with GitHub
   ## Synchronizing with push and pull 
-  ## Branching for feature development
+  git status
+  git pull origin main
 
+  git add inclass.qmd
+  git commit -m "Update in-class assignment"
+  git push origin main
+  
+  ## Branching for feature development
   ## Using pull requests for collaboration
   ## Merging changes and resolving conflicts
 
 #new changes test 22
+
+## Summary
+This report examines atmospheric CO2 concentrations at Mauna Loa and summarizes changes over time.

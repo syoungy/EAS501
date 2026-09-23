@@ -152,7 +152,8 @@ This is the same underlying idea as rendering to multiple formats, applied inste
 # Collaborative workflows with GitHub
   ## Synchronizing with push and pull 
   ## Branching for feature development
+
   ## Using pull requests for collaboration
   ## Merging changes and resolving conflicts
 
-#new changes test
+#new changes test 22

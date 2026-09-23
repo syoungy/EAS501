@@ -154,3 +154,5 @@ This is the same underlying idea as rendering to multiple formats, applied inste
   ## Branching for feature development
   ## Using pull requests for collaboration
   ## Merging changes and resolving conflicts
+
+#new changes test
